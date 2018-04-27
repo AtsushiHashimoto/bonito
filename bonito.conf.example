@@ -3,6 +3,10 @@
 # BONITO_DIR: master/slave hostでNFSなどを通じて共有されているディレクトリ
 BONITO_DIR="/share/bonito"
 
+# LOCAL REGISTRY (keep it blank if you do not use local docker registry)
+BONITO_REG_HOST=
+BONITO_REG_PORT=5000
+
 # 仮想環境がマウントするディレクトリの名前
 # ディレクトリ名の後ろに:roをつけるとread onlyでマウントされます． 
 BONITO_DOCKER_MOUNTS="/tmp /dev/shm /etc/localtime:ro /NAS1:ro /NAS2:ro /NAS3:ro /NAS4:ro /NAS5:ro"
@@ -25,3 +29,8 @@ BONITO_SHM_SIZE="0G"
 BONITO_BIN_JOIN="${BONITO_DIR}/bin/kube_join"
 
 BONITO_K8S_CONFIG=$BONITO_DIR/k8s_admin.conf
+
+BONITO_REG_PORT=5000
+BONITO_REG_NAME=bonito_registry
+BONITO_REG_VER=latest
+
