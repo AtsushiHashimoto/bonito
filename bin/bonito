@@ -1,0 +1,124 @@
+cd `dirname $0`
+. ../bonito.conf
+. ../library/subcommands.sh
+. ../library/subcommands_kube.sh
+
+function usage {
+    cat <<EOF
+$(basename ${0}) is a docker/kubertenes wrapper for research laboratory.
+
+Usage:
+    $(basename ${0}) [command] [<options>]
+
+Command:
+    run	              start/attach to your docker container (on kubertenes pod)
+    shutdown          stop/kill your docker container (on kubertenes pod)
+    create            create your docker container (and your kubertenes pod)
+    create_master_node prepare a master node for bonito with kubertenes.
+    create_slave_node make a node join to the master_node.
+    info              show information about your container (and pod).
+
+Options:
+    --version         print $(basename ${0}) version
+    --help, -h        print this
+    --verbose,-v      print debug messages
+    --debug           set -x
+EOF
+}
+
+function version {
+    echo "$(basename ${0}) version $BONITO_VERSION"
+}
+
+if [ $# -eq 0 ]; then
+  usage
+  exit 1
+fi
+subcommand=${1}
+shift
+
+
+# parse options
+while [ $# -gt 0 ];
+do
+    case ${1} in
+        --debug|-d)
+            set -x
+        ;;
+
+        --verbose|-v)
+	    is_verbose=1
+        ;;
+        
+        --help|-h)
+            show_help=1
+        ;;
+
+        --user|-u)
+            user=${2}
+            shift
+        ;;
+
+        --project|-p)
+            project=${2}
+            shift
+        ;;
+
+        *)
+            echo "[ERROR] Invalid option '${1}'"
+            usage
+            exit 1
+        ;;
+    esac
+    shift
+done
+
+function my_silent_exec {
+	echo $1 > /dev/null
+}
+
+# set default values if variables are not set by options.
+my_silent_exec ${user:=$USER}
+my_silent_exec ${project:=$BONITO_DEFAULT_PROJ}
+
+if [ "x$is_verbose" = "x1" ]; then
+  echo user: $user
+  echo project: $project
+fi
+
+# the list of subcommands
+subcommands=(create run stop create_master_node create_slave_node info)
+
+containsElement () {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
+
+# execute main functions
+if $(containsElement $subcommand ${subcommands[@]}); then
+  if [ "x$show_help" = "x1" ]; then
+    # ex.) help_bonito_run in ../library/subcommands*.sh
+    help_bonito_$subcommand
+  else
+    # ex.) bonito_run in ../library/subcommands*.sh
+    bonito_$subcommand
+  fi
+else
+  case $subcommand in
+    help|--help|-h )
+        usage
+    ;;
+
+    version|--version )
+        version
+    ;;
+ 
+    *)
+        echo "[ERROR] Invalid subcommand '${1}'"
+        usage
+        exit 1
+    ;;
+  esac
+fi
