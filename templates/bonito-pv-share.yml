@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bonito-pvc-share
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: bonito-base
+  resources:
+    requests:
+      storage: $BONITO_PV_SHARE_SIZE

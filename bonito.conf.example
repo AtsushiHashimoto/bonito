@@ -1,27 +1,50 @@
 # 環境に合わせて設定をするもの
 
+# master nodeのIPアドレス
+BONITO_MASTER_IP="127.0.0.1"
+
 # BONITO_DIR: master/slave hostでNFSなどを通じて共有されているディレクトリ
 BONITO_DIR="/share/bonito"
 
 # 仮想環境がマウントするディレクトリの名前
 # ディレクトリ名の後ろに:roをつけるとread onlyでマウントされます． 
-BONITO_DOCKER_MOUNTS="/tmp /dev/shm /etc/localtime:ro /NAS1:ro /NAS2:ro /NAS3:ro /NAS4:ro /NAS5:ro"
+BONITO_MOUNTS="/tmp /dev/shm /etc/localtime:ro /NAS1:ro /NAS2:ro /NAS3:ro /NAS4:ro /NAS5:ro"
 
 # master nodeの起動後，slave nodeのjoin前に動かすもの
+# bonito create_master_nodeで自動的に起動する．
 BONITO_K8S_DAEMONSET="https://raw.githubusercontent.com/coreos/flannel/v0.9.0/Documentation/kube-flannel.yml https://raw.githubusercontent.com/NVIDIA/k8s-device-plugin/v1.10/nvidia-device-plugin.yml"
+
+# Persistent Volume
+BONITO_PV_TOTAL_SIZE=20Ti
+BONITO_PV_SHARE_SIZE=80Ti
+BONITO_PV_REGIS_SIZE=100Gi
+BONITO_PV_HOME_SIZE=1Ti
+BONITO_PV_TYPE=hostDir
+#BONITO_PV_TYPE=nfs
+#BONITO_PV_SERVER=x.x.x.x # ip address to nfs server
+if [ BONITO_PV_TYPE == 'nfs' ]; then
+ BONITO_PV_SERVER_OPTION="server: $BONITO_PV_SERVER"
+else
+ BONITO_PV_SERVER_OPTION=""
+fi
+
+BONITO_K8S_DEVICE_PLUGIN_VERSION="1.10"
+
 
 
 # 通常変更の必要がないもの
 BONITO_VERSION=0.1
-BONITO_HOME_DIR="$HOME/bonito"
-BONITO_DEFAULT_IMAGE="bonito/master"
-BONITO_K8S_DEVICE_PLUGIN_VERSION="1.10"
 
-BONITE_POD_NETWORK_CIDR=10.244.0.0/16
+BONITO_REDIS_PORT=5000
+
+BONITO_HOME_DIR="$HOME/.bonito"
+
 BONITO_DEFAULT_PROJ="default"
-# host shm directory (/dev/shm) is mounted. 
-BONITO_SHM_SIZE="0G"
 
-BONITO_BIN_JOIN="${BONITO_DIR}/bin/kube_join"
+BONITO_TPL_DIR="$BONITO_DIR/templates"
+BONITO_TPL_YAML="$BONITO_TPL_DIR/default.$BONITO_DEFAULT_PROJ.yml"
 
+BONITE_POD_NETWORK_CIDR="10.244.0.0/16"
+
+BONITO_BIN_JOIN=$BONITO_DIR/bin/kube_join
 BONITO_K8S_CONFIG=$BONITO_DIR/k8s_admin.conf
