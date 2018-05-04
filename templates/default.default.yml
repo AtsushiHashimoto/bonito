@@ -1,6 +1,20 @@
 apiVersion: v1
 kind: List
 items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    name: bonito-pv-$BONITO_USER
+    labels:
+      type: bonito-pv-volumes
+  spec:
+    storageClassName: bonito-$BONITO_USER
+    capacity:
+      storage: $BONITO_PV_HOME_SIZE
+    accessModes:
+      - ReadWriteMany
+    hostPath:
+      path: $BONITO_PV_HOME_DIR/$BONITO_USER
 - kind: PersistentVolumeClaim
   apiVersion: v1
   metadata:
@@ -8,14 +22,14 @@ items:
   spec:
     accessModes:
       - ReadWriteMany
-    storageClassName: bonito-base
+    storageClassName: bonito-$BONITO_USER
     resources:
       requests:
-        storage: $BONITO_VOLUME_SIZE
+        storage: $BONITO_PV_HOME_SIZE
 - kind: Pod
   apiVersion: v1
   metadata:
-    name: bonito-$BONITO_USER.$BONITO_PROJECT-pod
+    name: bonito-$BONITO_USER-$BONITO_PROJECT-pod
   spec:
     volumes:
       - name: bonito-share
@@ -25,15 +39,14 @@ items:
         persistentVolumeClaim:
           claimName: bonito-pvc-$BONITO_USER
     containers:
-      - name: bonito-$BONITO_USER.$BONITO_PROJECT
+      - name: bonito-$BONITO_USER-$BONITO_PROJECT
         image: $BONITO_IMAGE
+        imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 8080
             name: "http-server"
         volumeMounts:
           - mountPath: "$BONITO_DIR"
             name: bonito-share
-            subpath: share
           - mountPath: "/root/home"
             name: bonito-home
-            subpath: home/$BONITO_USER

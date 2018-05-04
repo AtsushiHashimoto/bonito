@@ -12,10 +12,11 @@ Usage:
     $(basename ${0}) [command] [<options>]
 
 Command:
-    run	              start/attach to your docker container (on kubertenes pod)
-    push              push your docker image to registry.
-    shutdown          stop/kill your docker container (on kubertenes pod)
     create            create your docker container (and your kubertenes pod)
+    run	              start/attach to your docker container (on kubertenes pod)
+    shutdown          stop/kill your docker container (on kubertenes pod)
+    reboot            shutdown, then, create
+
     create_master_node prepare a master node for bonito with kubertenes.
     create_slave_node make a node join to the master_node.
     info              show information about your container (and pod).
@@ -35,8 +36,11 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 subcommand=${1}
-shift
-
+if [ `echo $subcommand | grep -- '--'`]; then
+  subcommand=""
+else
+  shift
+fi
 
 # parse options
 while [ $# -gt 0 ];
@@ -64,12 +68,17 @@ do
             shift
         ;;
 
+        --tag|-t)
+            tag=${2}
+            shift
+        ;;
+
         --num_gpu|-g)
             num_gpu=${2}
             shift
         ;;
 
-        --base_image|-i)
+        --base_image|-b)
             base_image=${2}
             shift
         ;;
@@ -79,10 +88,14 @@ do
             shift
         ;;
 
+        --command|-c)
+            command=${2}
+            shift
+        ;;
+
         *)
             echo "[ERROR] Invalid option '${1}'"
-            usage
-            exit 1
+            show_help=1
         ;;
     esac
     shift
@@ -95,12 +108,15 @@ function my_silent_exec {
 # set default values if variables are not set by options.
 my_silent_exec ${user:=$USER}
 my_silent_exec ${project:=$BONITO_DEFAULT_PROJ}
+my_silent_exec ${tag:=latest}
 my_silent_exec ${num_gpu:=1}
-image=$(bonito_image latest)
+my_silent_exec ${command:="/bin/sh"}
+image=$(bonito_image)
+pod_name=$(bonito_pod_name)
 if [ $(has_base_project) -eq 1 ]; then
-  my_silent_exec ${base_image:=$BONITO_MASTER_IP:$BONITO_REGIS_PORT/default.$project:latest}
+  my_silent_exec ${base_image:=$(bonito_image_custom default $project)}
 else
-  my_silent_exec ${base_image:=$BONITO_MASTER_IP:$BONITO_REGIS_PORT/default.default:latest}
+  my_silent_exec ${base_image:=$(bonito_image_custom default default)}
 fi
 my_silent_exec ${volume_size:=$BONITO_PV_HOME_SIZE}
 
@@ -110,7 +126,7 @@ if [ "x$is_verbose" = "x1" ]; then
 fi
 
 # the list of subcommands
-subcommands=(create run stop create_master_node create_slave_node info)
+subcommands=(create run shutdown reboot create_master_node create_slave_node info)
 
 containsElement () {
   local e match="$1"

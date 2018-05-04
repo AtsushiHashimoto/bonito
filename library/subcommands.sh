@@ -22,30 +22,23 @@ $3
 EOF
 }
 
-function bonito_file_exists {
-  # -s can return 1 to existing $1 when $1 is an empty file.
-  if [ -s $1 ]; then
-    echo 1
-  else
-    echo 0
-  fi
-}
+
 function bonito_project_yaml {
   proj_dir=$BONITO_DIR/projects
   if [ $(bonito_file_exists $proj_dir) -eq 0 ]; then
     mkdir -p $proj_dir
   fi
-  echo $proj_dir/$user.$project.yaml
+  echo $proj_dir/$user.$project.yml
 }
 
 function has_base_project {
-  tpl=$BONITO_TPL_DIR/default.$project.yaml
+  tpl=$BONITO_TPL_DIR/default.$project.yml
   echo $(bonito_file_exists $tpl)
 }
 
 function bonito_base_template {
   if [ $(has_base_project) -eq 1 ]; then
-    echo $BONITO_TPL_DIR/default.$project.yaml
+    echo $BONITO_TPL_DIR/default.$project.yml
   else
     echo $BONITO_TPL_YAML
   fi
@@ -74,29 +67,35 @@ function help_bonito_create {
 
 function bonito_create {
   yaml=$(bonito_project_yaml)
-  if [ $(bonito_file_exists $yaml) -eq 1 ]; then
-    bonito_error "The project is already exists. Just run the project."
+  bonito_confirm_overwrite $yaml
+  ret=$?
+  if [ $ret -gt 0 ]; then
     return 1
   fi
-  # tag base image
-  docker tag $base_image $image
+  rm -f $yaml
   bonito_render_project_yaml > $yaml
+
+  # tag base image
+  if [ $(bonito_image_exists) -eq 0 ]; then
+    echo docker pull $base_image
+    docker pull $base_image
+  fi
+  echo docker tag $base_image $image
+  docker tag $base_image $image
+  echo kubectl apply -f $yaml
   kubectl apply -f $yaml
-  bonito_push
 }
 
-function help_bonito_push {
-  help_bonito_basic push "push the project image to registry" ""
-}
-function bonito_push {
-  # docker commit
-  docker tag $image $(bonito_image $(date +%Y%m%d-%H%M%S))
-  docker commit $image
-  docker push $image
-}
 
+function print_options_bonito_run {
+  cat <<EOF
+    --command          direct command executed in the container.
+                      (Default: /bin/sh)
+EOF
+# default values for num_gpu,image,volume_size are defined in $BONITO_DIR/bin/bonito}
+}
 function help_bonito_run {
-  help_bonito_basic run "start/attach to the project pod." ""
+  help_bonito_basic run "start/attach to the project pod." $(print_options_bonito_run)
 }
 
 function bonito_run {
@@ -105,7 +104,8 @@ function bonito_run {
     bonito_error "Unknown project: $user.$project\nTo create a new project, use create command. ex.) bonito create --user $user --project $project"
     return 1
   fi
-  kubectl apply -f $yaml
+  echo kubectl exec -it $pod_name -- $command
+  kubectl exec -it $pod_name -- $command
 }
 
 function help_bonito_shutdown {
@@ -119,6 +119,15 @@ function bonito_shutdown {
     return 1
   fi
   kubectl delete -f $yaml
+}
+
+function help_bonito_reboot {
+  help_bonito_basic reboot "reboot (shutdown/create) the project pod." ""
+}
+
+function bonito_reboot {
+  bonito_shutdown
+  bonito_create
 }
 
 function help_bonito_info {
