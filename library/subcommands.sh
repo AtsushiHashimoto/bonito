@@ -75,6 +75,15 @@ function bonito_create {
   rm -f $yaml
   bonito_render_project_yaml > $yaml
 
+  home_mnt=$BONITO_PV_HOME_DIR/$user
+  if [ $(bonito_file_exists $home_mnt) -eq 0 ]; then
+    mkdir -p home_mnt
+    home_default=$BONITO_PV_HOME_DIR/default
+    if [ $(bonito_file_exists $home_default) -eq 1 ]; then
+      cp -r $home_default $home_mnt
+    fi
+  fi
+  
   # tag base image
   if [ $(bonito_image_exists) -eq 0 ]; then
     echo docker pull $base_image

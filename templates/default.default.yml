@@ -48,5 +48,5 @@ items:
         volumeMounts:
           - mountPath: "$BONITO_DIR"
             name: bonito-share
-          - mountPath: "/root/home"
+          - mountPath: "/root"
             name: bonito-home
