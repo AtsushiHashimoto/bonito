@@ -44,7 +44,7 @@ items:
     containers:
       - name: bonito-$BONITO_USER-$BONITO_PROJECT
         image: $BONITO_IMAGE
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Never
         ports:
           - containerPort: 8080
             name: "http-server"
