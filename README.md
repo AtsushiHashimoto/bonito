@@ -1,5 +1,5 @@
 # bonito
-a wrapper of docker for academic laboratories.
+a wrapper of kubernetes for academic laboratories.
 
 # What can we do with bonito?
 You can copy a well set-up virtual machines for each student/project with 1 liner command:  
