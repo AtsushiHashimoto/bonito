@@ -15,17 +15,37 @@ EOF
 function bonito_registry_yaml {
   echo $BONITO_DIR/projects/in-cluster-registry.yml
 }
+function bonito_cert_dir {
+  echo $BONITO_DIR/cert
+}
+function bonito_create_certificate {
+  cert_dir=$(bonito_cert_dir)
+  bonito_confirm_overwrite $cert_dir/server.crt
+  ret=$?
+  if [ $ret -eq 0 ]; then
+    days=3650 # 10 years
+    mkdir -p $cert_dir
+    cd $cert_dir
+    openssl genrsa 2048 > server.key
+    openssl req -new -key server.key > server.csr
+    openssl x509 -days $days -req -signkey server.key < server.csr > server.crt
+    cd -
+  fi
+}
+
 function bonito_create_registry_yaml {
-  cert_dir=$BONITO_DIR/cert
-  days=3650 # 10 years
-  mkdir -p $cert_dir
-  cd $cert_dir
-  openssl genrsa 2048 > server.key
-  openssl req -new -key server.key > server.csr
-  openssl x509 -days $days -req -signkey server.key < server.csr > server.crt
+  bonito_create_certificate
+  cert_dir=$(bonito_cert_dir)
+  cd $cert_dir > /dev/null
   export BONITO_TMP_CERT_BASE64=$(cat server.crt|base64)
   export BONITO_TMP_KEY_BASE64=$(cat server.key|base64)
-  bonito_render $BONITO_TPL_DIR/registry-secrets.yaml > $(bonito_registry_yaml)
+  bonito_render $BONITO_TPL_REGIS > $(bonito_registry_yaml)
+  if [ $is_verbose -eq 1 ]; then
+    echo $(bonito_registry_yaml) is updated.
+  fi
+  export BONITO_TMP_CERT_BASE64=
+  export BONITO_TMP_KEY_BASE64=
+  cd - > /dev/null
 }
 
 function bonito_init_master_node {
@@ -33,10 +53,14 @@ function bonito_init_master_node {
   mkdir -p $BONITO_PV_REGIS_DIR
   mkdir -p $BONITO_PV_HOME_DIR
   mkdir -p $BONITO_DIR/tls
+  kubectl config set-context $(kubectl config current-context) --namespace=bonito
   for daemon in $BONITO_K8S_DAEMONSET; do
     echo kubectl apply -f $daemon
     kubectl apply -f $daemon
   done
+  bonito_create_registry_yaml
+  kubectl apply -f $(bonito_registry_yaml)
+
   # render persistent volumes for gpgpu clusters
   bonito_load_pods
 }
@@ -51,6 +75,8 @@ function bonito_create_master_node {
   chown $(id -u):$(id -g) $BONITO_K8S_CONFIG
   chmod a+r $BONITO_K8S_CONFIG
   export KUBECONFIG=$BONITO_K8S_CONFIG
+
+
   bonito_init_master_node
 }
 

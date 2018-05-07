@@ -5,6 +5,7 @@ items:
   kind: PersistentVolume
   metadata:
     name: bonito-pv-$BONITO_USER
+    namespace: $BONITO_NAMESPACE
     labels:
       type: bonito-pv-volumes
   spec:
@@ -19,6 +20,7 @@ items:
   apiVersion: v1
   metadata:
     name: bonito-pvc-$BONITO_USER
+    namespace: $BONITO_NAMESPACE
   spec:
     accessModes:
       - ReadWriteMany
@@ -30,6 +32,7 @@ items:
   apiVersion: v1
   metadata:
     name: bonito-$BONITO_USER-$BONITO_PROJECT-pod
+    namespace: $BONITO_NAMESPACE
   spec:
     volumes:
       - name: bonito-share
