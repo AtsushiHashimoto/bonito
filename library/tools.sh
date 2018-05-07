@@ -75,9 +75,7 @@ function bonito_pod_name {
 function bonito_render {
   bonito_export
   template=$1
-  output_file=$2
   printf "cat <<++EOS\n`cat $template`\n++EOS\n" | sh
-  #python3 ${BONITO_DIR}/template_render.py $template --user "$user" --project "$project" --num_gpu "$num_gpu" > $output_file
 }
 
 function bonito_file_exists {

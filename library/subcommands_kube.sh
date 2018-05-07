@@ -12,31 +12,31 @@ before running the command, you need to install kubertenes, and set $BONITO_DIR/
 EOF
 }
 
-function bonito_init_secure_docker_tls_access {
-  tls_dir=$BONITO_DIR/tls
-  days=365
-
-  cd $tls_dir
-
-  openssl genrsa -aes -out ca-key.pem 4096
-  openssl genrsa req -new -x509 -days $days -key ca-key.pem -sha256 -out ca.pem
-
-  openssl genrsa -out server-key.pem 4096
-  openssl req -sha256 -new -key server-key.pem -out server.csr
-
-  echo subjectAltName = IP:192.168.56.100,IP:127.0.0.1 > extfile.cnf
-  openssl x509 -req -days $days -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server.pem -extfile extfile.cnf
-    
-
-  cd -
+function bonito_registry_yaml {
+  echo $BONITO_DIR/projects/in-cluster-registry.yml
+}
+function bonito_create_registry_yaml {
+  cert_dir=$BONITO_DIR/cert
+  days=3650 # 10 years
+  mkdir -p $cert_dir
+  cd $cert_dir
+  openssl genrsa 2048 > server.key
+  openssl req -new -key server.key > server.csr
+  openssl x509 -days $days -req -signkey server.key < server.csr > server.crt
+  export BONITO_TMP_CERT_BASE64=$(cat server.crt|base64)
+  export BONITO_TMP_KEY_BASE64=$(cat server.key|base64)
+  bonito_render $BONITO_TPL_DIR/registry-secrets.yaml > $(bonito_registry_yaml)
 }
 
 function bonito_init_master_node {
+  mkdir -p $BONITO_PV_SHARE_DIR
+  mkdir -p $BONITO_PV_REGIS_DIR
+  mkdir -p $BONITO_PV_HOME_DIR
+  mkdir -p $BONITO_DIR/tls
   for daemon in $BONITO_K8S_DAEMONSET; do
     echo kubectl apply -f $daemon
     kubectl apply -f $daemon
   done
-
   # render persistent volumes for gpgpu clusters
   bonito_load_pods
 }
