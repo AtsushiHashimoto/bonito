@@ -1,0 +1,4 @@
+templates/bonito-pv-share.yml
+templates/bonito-pv-regis.yml
+templates/docker-private-registry.yml
+templates/docker-private-registry-proxy.yml

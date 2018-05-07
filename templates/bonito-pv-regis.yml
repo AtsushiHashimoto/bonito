@@ -1,0 +1,11 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: bonito-pvc-regis
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: bonito-base
+  resources:
+    requests:
+      storage: $BONITO_PV_REGIS_SIZE

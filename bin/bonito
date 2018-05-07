@@ -1,5 +1,6 @@
 cd `dirname $0`
 . ../bonito.conf
+. ../library/tools.sh
 . ../library/subcommands.sh
 . ../library/subcommands_kube.sh
 
@@ -12,17 +13,16 @@ Usage:
 
 Command:
     run	              start/attach to your docker container (on kubertenes pod)
+    push              push your docker image to registry.
     shutdown          stop/kill your docker container (on kubertenes pod)
     create            create your docker container (and your kubertenes pod)
     create_master_node prepare a master node for bonito with kubertenes.
     create_slave_node make a node join to the master_node.
     info              show information about your container (and pod).
 
-Options:
+Basic Options:
     --version         print $(basename ${0}) version
-    --help, -h        print this
-    --verbose,-v      print debug messages
-    --debug           set -x
+    --help, -h        print this. With a command, print help for the command.
 EOF
 }
 
@@ -49,7 +49,7 @@ do
         --verbose|-v)
 	    is_verbose=1
         ;;
-        
+
         --help|-h)
             show_help=1
         ;;
@@ -61,6 +61,21 @@ do
 
         --project|-p)
             project=${2}
+            shift
+        ;;
+
+        --num_gpu|-g)
+            num_gpu=${2}
+            shift
+        ;;
+
+        --base_image|-i)
+            base_image=${2}
+            shift
+        ;;
+
+        --volume_size|-s)
+            volume_size=${2}
             shift
         ;;
 
@@ -80,6 +95,14 @@ function my_silent_exec {
 # set default values if variables are not set by options.
 my_silent_exec ${user:=$USER}
 my_silent_exec ${project:=$BONITO_DEFAULT_PROJ}
+my_silent_exec ${num_gpu:=1}
+image=$(bonito_image latest)
+if [ $(has_base_project) -eq 1 ]; then
+  my_silent_exec ${base_image:=$BONITO_MASTER_IP:$BONITO_REGIS_PORT/default.$project:latest}
+else
+  my_silent_exec ${base_image:=$BONITO_MASTER_IP:$BONITO_REGIS_PORT/default.default:latest}
+fi
+my_silent_exec ${volume_size:=$BONITO_PV_HOME_SIZE}
 
 if [ "x$is_verbose" = "x1" ]; then
   echo user: $user
@@ -114,7 +137,7 @@ else
     version|--version )
         version
     ;;
- 
+
     *)
         echo "[ERROR] Invalid subcommand '${1}'"
         usage
