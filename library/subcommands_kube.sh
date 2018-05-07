@@ -12,6 +12,25 @@ before running the command, you need to install kubertenes, and set $BONITO_DIR/
 EOF
 }
 
+function bonito_init_secure_docker_tls_access {
+  tls_dir=$BONITO_DIR/tls
+  days=365
+
+  cd $tls_dir
+
+  openssl genrsa -aes -out ca-key.pem 4096
+  openssl genrsa req -new -x509 -days $days -key ca-key.pem -sha256 -out ca.pem
+
+  openssl genrsa -out server-key.pem 4096
+  openssl req -sha256 -new -key server-key.pem -out server.csr
+
+  echo subjectAltName = IP:192.168.56.100,IP:127.0.0.1 > extfile.cnf
+  openssl x509 -req -days $days -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem -CAcreateserial -out server.pem -extfile extfile.cnf
+    
+
+  cd -
+}
+
 function bonito_init_master_node {
   for daemon in $BONITO_K8S_DAEMONSET; do
     echo kubectl apply -f $daemon
