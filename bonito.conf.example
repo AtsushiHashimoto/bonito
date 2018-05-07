@@ -3,12 +3,8 @@
 # BONITO_DIR: master/slave hostでNFSなどを通じて共有されているディレクトリ
 BONITO_DIR="/share/bonito"
 
-# LOCAL REGISTRY (keep it blank if you do not use local docker registry)
-BONITO_REG_HOST=
-BONITO_REG_PORT=5000
-
 # 仮想環境がマウントするディレクトリの名前
-# ディレクトリ名の後ろに:roをつけるとread onlyでマウントされます． 
+# ディレクトリ名の後ろに:roをつけるとread onlyでマウントされます．
 BONITO_MOUNTS="/etc/localtime:ro /NAS1:ro /NAS2:ro /NAS3:ro /NAS4:ro /NAS5:ro"
 
 # master nodeの起動後，slave nodeのjoin前に動かすもの
@@ -24,10 +20,10 @@ BONITO_PV_SHARE_SIZE=80Ti
 BONITO_PV_SHARE_DIR=$BONITO_DIR/volume/share
 
 BONITO_PV_REGIS_SIZE=50Gi
-BONITO_PV_REGIS_DIR=$BONITO_DIR/image-registry
+BONITO_PV_REGIS_DIR=$BONITO_DIR/volume/image-registry
 
 BONITO_PV_HOME_SIZE=1Ti
-BONITO_PV_HOME_DIR=$BONITO_DIR/home
+BONITO_PV_HOME_DIR=$BONITO_DIR/volume/home
 
 #######
 if [ BONITO_PV_TYPE == 'nfs' ]; then
@@ -54,8 +50,3 @@ BONITE_POD_NETWORK_CIDR="10.244.0.0/16"
 
 BONITO_BIN_JOIN=$BONITO_DIR/bin/kube_join
 BONITO_K8S_CONFIG=$BONITO_DIR/k8s_admin.conf
-
-BONITO_REG_PORT=5000
-BONITO_REG_NAME=bonito_registry
-BONITO_REG_VER=latest
-
