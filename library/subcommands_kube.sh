@@ -54,7 +54,7 @@ function bonito_init_master_node {
   mkdir -p $BONITO_PV_REGIS_DIR
   mkdir -p $BONITO_PV_HOME_DIR
   mkdir -p $BONITO_DIR/tls
-  kubectl config set-context $(kubectl config current-context) --namespace=bonito
+  kubectl config set-context $(kubectl config current-context) --namespace=$BONITO_NAMESPACE
   for daemon in $BONITO_K8S_DAEMONSET; do
     echo kubectl apply -f $daemon
     kubectl apply -f $daemon
