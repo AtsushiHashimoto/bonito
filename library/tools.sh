@@ -75,7 +75,7 @@ function bonito_pod_name {
 function bonito_render {
   bonito_export
   template=$1
-  if [! -e $template ]; then
+  if [ ! -e $template ]; then
     bonito_error "file not found: '$template'"
     return 1
   fi
