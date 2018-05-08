@@ -38,8 +38,8 @@ function bonito_create_registry_yaml {
   bonito_create_certificate
   cert_dir=$(bonito_cert_dir)
   cd $cert_dir > /dev/null
-  export BONITO_TMP_CERT_BASE64=$(cat server.crt|base64)
-  export BONITO_TMP_KEY_BASE64=$(cat server.key|base64)
+  export BONITO_TMP_CERT_BASE64=$(cat server.crt|base64 --w 0)
+  export BONITO_TMP_KEY_BASE64=$(cat server.key|base64 --w 0)
   bonito_render $BONITO_TPL_REGIS > $(bonito_registry_yaml)
   if [ $is_verbose -eq 1 ]; then
     echo $(bonito_registry_yaml) is updated.
