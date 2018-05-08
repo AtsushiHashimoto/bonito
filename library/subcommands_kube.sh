@@ -36,11 +36,14 @@ function bonito_create_certificate {
 
 function bonito_create_registry_yaml {
   bonito_create_certificate
+  echo hoge
   cert_dir=$(bonito_cert_dir)
   cd $cert_dir > /dev/null
   export BONITO_TMP_CERT_BASE64=$(cat server.crt|base64 --w 0)
   export BONITO_TMP_KEY_BASE64=$(cat server.key|base64 --w 0)
+  echo bonito_render $BONITO_TPL_REGIS
   bonito_render $BONITO_TPL_REGIS > $(bonito_registry_yaml)
+  echo bonito_render done.
   if [ $is_verbose -eq 1 ]; then
     echo $(bonito_registry_yaml) is updated.
   fi
@@ -59,12 +62,16 @@ function bonito_init_master_node {
     echo kubectl apply -f $daemon
     kubectl apply -f $daemon
   done
+
+  # create in-cluster private registry
   bonito_create_registry_yaml
   echo kubectl apply -f $(bonito_registry_yaml)
   kubectl apply -f $(bonito_registry_yaml)
 
   # render persistent volumes for gpgpu clusters
+  echo bonito_load_pods
   bonito_load_pods
+
 }
 
 function bonito_create_master_node {
