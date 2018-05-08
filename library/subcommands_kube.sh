@@ -28,8 +28,9 @@ function bonito_create_certificate {
     cd $cert_dir
     openssl genrsa 2048 > server.key
     openssl req -new -key server.key > server.csr
-    openssl x509 -days $days -req -signkey server.key < server.csr > server.crt
-    cd -
+    openssl x509 -days $days -req -signkey server.key < server.csr > server.crt.tmp
+    mv server.crt.tmp server.crt
+    cd - > /dev/null
   fi
 }
 
@@ -59,6 +60,7 @@ function bonito_init_master_node {
     kubectl apply -f $daemon
   done
   bonito_create_registry_yaml
+  echo kubectl apply -f $(bonito_registry_yaml)
   kubectl apply -f $(bonito_registry_yaml)
 
   # render persistent volumes for gpgpu clusters
