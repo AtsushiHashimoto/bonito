@@ -32,6 +32,10 @@ else
  BONITO_PV_SERVER_OPTION=""
 fi
 
+if [ "x$TMPDIR" == 'x' ]; then
+ TMPDIR=/tmp
+ mkdir -p $TMPDIR
+fi
 BONITO_K8S_DEVICE_PLUGIN_VERSION="1.10"
 
 
