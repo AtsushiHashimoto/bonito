@@ -1,0 +1,121 @@
+cd `dirname $0`
+. ../bonito.conf
+. ../bonito_sys.conf
+. ../library/tools.sh
+. ../library/registry.sh
+. ../library/subcommands.sh
+
+
+MY_CONF=$BONITO_USER_DIR/bonito.conf
+if [ $(bonito_file_exists $MY_CONF) -eq 1 ]; then
+  . $MY_CONF
+else
+  # create an empty file.
+  mkdir -p $BONITO_USER_DIR
+  touch $MY_CONF
+fi
+
+exp_text_init="initialize bonito member node (execute once par node is enough)."
+exp_text_start_registry="start docker registry (execute only on $DOCKER_REGIS_SERVER)"
+exp_text_stop_registry="stop docker registry. Normally, this operation is not required."
+
+function usage {
+    cat <<EOF
+$(basename ${0}) is an admin tool for bonito, a docker wrapper for research laboratory.
+
+Usage:
+    $(basename ${0}) [command] [<options>]
+
+Command:
+    init              $exp_text_init
+    start_registry    $exp_text_start_registry
+    stop_registry     $exp_text_stop_registry
+
+Basic Options:
+    --version         print $(basename ${0}) version
+    --help, -h        print this. With a command, print help for the command.
+EOF
+}
+
+function version {
+  echo "$(basename ${0}) version $BONITO_VERSION"
+}
+
+if [ $# -eq 0 ]; then
+  usage
+  exit 1
+fi
+
+subcommand=${1}
+if [ `echo $subcommand | grep -- '--'`]; then
+  subcommand=""
+else
+  shift
+fi
+
+# parse options
+while [ $# -gt 0 ];
+do
+    case ${1} in
+        --debug|-d)
+            set -x
+        ;;
+
+        --verbose|-v)
+	    is_verbose=1
+        ;;
+
+        --help|-h)
+            show_help=1
+        ;;
+
+        *)
+            echo "[ERROR] Invalid option '${1}'"
+            show_help=1
+        ;;
+    esac
+    shift
+done
+
+
+if [ "x$is_verbose" = "x1" ]; then
+  echo user: $user
+  echo project: $project
+fi
+
+# the list of subcommands
+subcommands=(init start_registry stop_registry)
+
+containsElement () {
+  local e match="$1"
+  shift
+  for e; do [[ "$e" == "$match" ]] && return 0; done
+  return 1
+}
+
+# execute main functions
+if $(containsElement $subcommand ${subcommands[@]}); then
+  if [ "x$show_help" = "x1" ]; then
+    # ex.) help_bonito_run in ../library/subcommands*.sh
+    help_bonito_$subcommand
+  else
+    # ex.) bonito_run in ../library/subcommands*.sh
+    bonito_$subcommand
+  fi
+else
+  case $subcommand in
+    help|--help|-h )
+        usage
+    ;;
+
+    version|--version )
+        version
+    ;;
+
+    *)
+        echo "[ERROR] Invalid subcommand '${1}'"
+        usage
+        exit 1
+    ;;
+  esac
+fi

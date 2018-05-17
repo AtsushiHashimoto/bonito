@@ -1,13 +1,9 @@
 function bonito_error {
-  echo "ERROR: $1"
+  echo "ERROR: $1" >&2
 }
 
-function bonito_print_yml {
-  if [ $# -lt 1 ]; then
-    bonito_error "bonito_print_yml requres one argument (yml file path)"
-    return 0
-  fi
-  echo $(eval $1)
+function bonito_warn {
+  echo "WARNING: $1" >&2
 }
 
 function bonito_image_exists {
@@ -16,13 +12,37 @@ function bonito_image_exists {
   else
     tar=$1
   fi
-  if [ `docker images -a | grep $tar`]; then
+  docker images --format "{{.Repository}}:{{.Tag}}" -a | grep $tar > /dev/null
+  ret=$?
+  if [ $ret -eq 0 ]; then
     echo 1
     return 0
   fi
   echo 0
   return 0
 }
+
+function bonito_base_image_exists {
+  tar=$(bonito_image_custom $BONITO_DEFAULT_USER $project)
+  bonito_image_exists $tar
+}
+
+function bonito_container_exists {
+  if [ $# -gt 0 ]; then
+    filter=$1
+  fi
+  tar=$(bonito_container)
+  docker ps -a --format '{{.Names}}' $filter --filter name="/$tar\$" | grep $tar > /dev/null
+  ret=$?
+  if [ $ret -eq 0 ]; then
+    echo 1
+    return 0
+  fi
+  echo 0
+  return 0
+}
+
+
 
 function bonito_image {
   bonito_image_custom $user $project $tag
@@ -44,8 +64,47 @@ function bonito_image_custom {
   else
     tag_=$3
   fi
-  echo bonito/$user_/$project_:$tag_
+  image=$BONITO_PREFIX/$user_/$project_:$tag_
+  if [ "x$BONITO_REGIS_SERVER" == "x" ]; then
+    echo $image
+    return 0
+  fi
+  echo $BONITO_REGIS_SERVER:$BONITO_REGIS_PORT/$image
 }
+
+function bonito_container {
+  echo $BONITO_PREFIX.$user.$project
+}
+
+function bonito_home_custom {
+  user_=$1
+  echo $BONITO_HOME_DIR/$user_
+}
+function bonito_home {
+  bonito_home_custom $user $project
+}
+
+function bonito_mount_option {
+  temp=${BONITO_MOUNTS}
+  common_mount=""
+  for v in ${temp[@]}; do
+    v_=$(echo $v | sed -e "s/:ro//")
+    common_mount="${common_mount} -v ${v_}:${v}"
+  done
+  echo "-v $(bonito_home)/:/root ${common_mount}"
+}
+
+function bonito_port_option {
+  temp=${BONITO_PORTS}
+  common_port=""
+  for p in ${temp[@]}; do
+    host_port=$(echo $p | sed -e "s/:.*//")
+    container_port=$(echo $p | sed -e "s/.*://")
+    common_port="${common_port} -p $host_port:$container_port"
+  done
+  echo $common_port
+}
+
 #######################
 # RENDERING VARIABLE-EMBEDDED YAMLs
 #######################
@@ -91,6 +150,26 @@ function bonito_file_exists {
   fi
 }
 
+function bonito_is_in_file {
+  if [ $(bonito_file_exists $proj_dir) -eq 0 ]; then
+    echo 0
+    return 1
+  fi
+  if [ $# -ne 2 ]; then
+    echo 0
+    return 1
+  fi
+  for word in `cat $1`
+  do
+    if [ $word == $2 ]; then
+      echo 1
+      return 0
+    fi
+  done
+  echo 0
+  return 0
+}
+
 function bonito_confirm_overwrite {
   if [ $# -gt 0 ]; then
     file=$1
@@ -120,12 +199,42 @@ function bonito_confirm_overwrite {
   esac
 }
 
-function bonito_overwrite_test {
-  file="bonito.conf"
-  bonito_confirm_overwrite $file
+
+function bonito_timestamp_sec {
+  date "+%Y%m%d-%H%M%S"
+}
+function bonito_timestamp_msec {
+  date "+%Y%m%d-%H%M%S-%3N"
+}
+
+function bonito_ip_addresses {
+  ifconfig -a | grep inet[^6] | sed 's/.*inet[^6][^0-9]*\([0-9.]*\)[^0-9]*.*/\1/'
+}
+function bonito_is_registry_server {
+  if [ "localhost" == $BONITO_REGIS_SERVER ]; then
+    echo 1
+    return 0
+  fi
+
+  ips=$(bonito_ip_addresses)
   ret=$?
-  if [ $ret -gt 0 ]; then
+  # fail to get ip addresses
+  if [ $ret -eq 1 ]; then
+    echo 0
     return 1
   fi
-  echo "overwrite $file"
+
+  for ip in $ips; do
+    if [ $ip == $BONITO_REGIS_SERVER ]; then
+      echo 1
+      return 0
+    fi
+  done
+  if [ $(hostname) == $BONITO_REGIS_SERVER ]; then
+    echo 1
+    return 0
+  fi
+
+  echo 0
+  return 0
 }

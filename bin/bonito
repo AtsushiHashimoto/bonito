@@ -1,8 +1,25 @@
 cd `dirname $0`
 . ../bonito.conf
+. ../bonito_sys.conf
 . ../library/tools.sh
 . ../library/subcommands.sh
-. ../library/subcommands_kube.sh
+
+MY_CONF=$BONITO_USER_DIR/bonito.conf
+if [ $(bonito_file_exists $MY_CONF) -eq 1 ]; then
+  . $MY_CONF
+else
+  # create an empty file.
+  mkdir -p $BONITO_USER_DIR
+  touch $MY_CONF
+fi
+
+exp_text_run="start (or attach to) the docker container."
+exp_text_shutdown="stop and remove the docker container"
+exp_text_reboot="shutdown the container, then, run it again from image."
+
+exp_text_create="create a new project image. It will also create your home directory for your projects if not exists.)"
+exp_text_delete="delete your docker image safely."
+exp_text_snapshot="commit and push changes of the docker container to the image in registry."
 
 function usage {
     cat <<EOF
@@ -12,14 +29,14 @@ Usage:
     $(basename ${0}) [command] [<options>]
 
 Command:
-    create            create your docker container (and your kubertenes pod)
-    run	              start/attach to your docker container (on kubertenes pod)
-    shutdown          stop/kill your docker container (on kubertenes pod)
-    reboot            shutdown, then, create
+    run	              $exp_text_run
+    shutdown          $exp_text_shutdown
+    reboot            $exp_text_reboot
 
-    create_master_node prepare a master node for bonito with kubertenes.
-    create_slave_node make a node join to the master_node.
-    info              show information about your container (and pod).
+    create            $exp_text_create
+    delete            $exp_text_delete
+    snapshot          $exp_text_snapshot
+
 
 Basic Options:
     --version         print $(basename ${0}) version
@@ -35,6 +52,7 @@ if [ $# -eq 0 ]; then
   usage
   exit 1
 fi
+
 subcommand=${1}
 if [ `echo $subcommand | grep -- '--'`]; then
   subcommand=""
@@ -73,18 +91,8 @@ do
             shift
         ;;
 
-        --num_gpu|-g)
-            num_gpu=${2}
-            shift
-        ;;
-
         --base_image|-b)
             base_image=${2}
-            shift
-        ;;
-
-        --volume_size|-s)
-            volume_size=${2}
             shift
         ;;
 
@@ -93,10 +101,13 @@ do
             shift
         ;;
 
-        *)
+        -*)
             echo "[ERROR] Invalid option '${1}'"
             show_help=1
         ;;
+        *)
+            # if no --flag, treat as --user ${1}
+            user=${1}
     esac
     shift
 done
@@ -110,15 +121,14 @@ my_silent_exec ${user:=$USER}
 my_silent_exec ${project:=$BONITO_DEFAULT_PROJ}
 my_silent_exec ${tag:=latest}
 my_silent_exec ${num_gpu:=1}
-my_silent_exec ${command:="/bin/sh"}
+my_silent_exec ${command:=$BONITO_SHELL}
+
 image=$(bonito_image)
-pod_name=$(bonito_pod_name)
-if [ $(has_base_project) -eq 1 ]; then
-  my_silent_exec ${base_image:=$(bonito_image_custom default $project)}
+if [ $(bonito_base_image_exists) -eq 1 ]; then
+  my_silent_exec ${base_image:=$(bonito_image_custom $BONITO_DEFAULT_USER $project)}
 else
-  my_silent_exec ${base_image:=$(bonito_image_custom default default)}
+  my_silent_exec ${base_image:=$(bonito_image_custom $BONITO_DEFAULT_USER $BONITO_DEFAULT_PROJ)}
 fi
-my_silent_exec ${volume_size:=$BONITO_PV_HOME_SIZE}
 
 if [ "x$is_verbose" = "x1" ]; then
   echo user: $user
@@ -126,7 +136,7 @@ if [ "x$is_verbose" = "x1" ]; then
 fi
 
 # the list of subcommands
-subcommands=(create run shutdown reboot create_master_node create_slave_node info)
+subcommands=(run shutdown reboot  create delete snapshot)
 
 containsElement () {
   local e match="$1"
