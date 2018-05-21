@@ -67,8 +67,8 @@ Now, you should be able to run your virtual machine.
 ```
 % bonito create (only once)
 % bonito run 
-% bonito shutdown (if stop the container)
-% bonito delete (if delete the image)
+% bonito shutdown (when you want to stop the container)
+% bonito delete (when you want to delete the image)
 ```
 
 # USE CASE
