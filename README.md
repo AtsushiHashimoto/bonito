@@ -1,5 +1,5 @@
 # bonito
-a wrapper of docker for academic laboratories.
+a docker wrapper for academic laboratories.
 
 # who should use bonito
 - those who want to give your student a root permission of the server.
