@@ -79,5 +79,8 @@ Now, you should be able to run your virtual machine.
 % bonito run -c /root/jupyter.sh -o "-d --restart=always -p 18888:8888"
 ```
 
-
+# Problems & Future Possibilities
+1. You need to restart docker server whenever you add a new user.
+2. You need to find an available gpu resource manually. Better to integrate this with k8s. (But, I don't succeed to run a insecure docker registry in a k8s pod. I also afraid to loose visibility of gpu resource usage for each user.)
+3. kubeflow has possibility to cover the functionality of bonito in future, and I hope so =)
 
