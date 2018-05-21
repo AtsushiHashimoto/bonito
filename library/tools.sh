@@ -6,6 +6,10 @@ function bonito_warn {
   echo "WARNING: $1" >&2
 }
 
+function bonito_info {
+  echo "INFO: $1"
+}
+
 function bonito_image_exists {
   if [ $# -eq 0 ]; then
     tar=$image
@@ -20,11 +24,6 @@ function bonito_image_exists {
   fi
   echo 0
   return 0
-}
-
-function bonito_base_image_exists {
-  tar=$(bonito_image_custom $BONITO_DEFAULT_USER $project)
-  bonito_image_exists $tar
 }
 
 function bonito_container_exists {
@@ -69,7 +68,15 @@ function bonito_image_custom {
     echo $image
     return 0
   fi
-  echo $BONITO_REGIS_SERVER:$BONITO_REGIS_PORT/$image
+  echo $(bonito_registry_server):$BONITO_REGIS_PORT/$image
+}
+
+function bonito_registry_server {
+  if [ $(bonito_is_registry_server) -eq 1 ]; then
+    echo "localhost"
+  else
+    echo $BONITO_REGIS_SERVER
+  fi
 }
 
 function bonito_container {
@@ -91,7 +98,7 @@ function bonito_mount_option {
     v_=$(echo $v | sed -e "s/:ro//")
     common_mount="${common_mount} -v ${v_}:${v}"
   done
-  echo "-v $(bonito_home)/:/root ${common_mount}"
+  echo "-v $(bonito_home):/root ${common_mount}"
 }
 
 function bonito_port_option {
@@ -210,6 +217,7 @@ function bonito_timestamp_msec {
 function bonito_ip_addresses {
   ifconfig -a | grep inet[^6] | sed 's/.*inet[^6][^0-9]*\([0-9.]*\)[^0-9]*.*/\1/'
 }
+
 function bonito_is_registry_server {
   if [ "localhost" == $BONITO_REGIS_SERVER ]; then
     echo 1
@@ -238,3 +246,8 @@ function bonito_is_registry_server {
   echo 0
   return 0
 }
+
+#function bonito_port_offset {
+#
+#  echo $(expr $BONITO_PORT_OFFSET + $BONITO_USER_PORT_STEP * $offset)
+#}

@@ -62,13 +62,17 @@ do
         ;;
 
         --verbose|-v)
-	    is_verbose=1
+	          is_verbose=1
         ;;
 
         --help|-h)
             show_help=1
         ;;
 
+        --user|-u)
+            user=${2}
+            shift
+        ;;
         *)
             echo "[ERROR] Invalid option '${1}'"
             show_help=1
@@ -77,14 +81,8 @@ do
     shift
 done
 
-
-if [ "x$is_verbose" = "x1" ]; then
-  echo user: $user
-  echo project: $project
-fi
-
 # the list of subcommands
-subcommands=(init start_registry stop_registry)
+subcommands=(init start_registry stop_registry add_user)
 
 containsElement () {
   local e match="$1"

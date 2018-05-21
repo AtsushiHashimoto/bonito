@@ -123,12 +123,18 @@ my_silent_exec ${tag:=latest}
 my_silent_exec ${num_gpu:=1}
 my_silent_exec ${command:=$BONITO_SHELL}
 
+#port_offset=$(bonito_port_offset) 
+
 image=$(bonito_image)
-if [ $(bonito_base_image_exists) -eq 1 ]; then
-  my_silent_exec ${base_image:=$(bonito_image_custom $BONITO_DEFAULT_USER $project)}
+tmp_base_image=$(bonito_image_custom $BONITO_DEFAULT_USER $project)}
+if [ $(bonito_image_exists $tmp_base_image) -eq 1 ]; then
+  my_silent_exec ${base_image:=$tmp_base_image}
 else
   my_silent_exec ${base_image:=$(bonito_image_custom $BONITO_DEFAULT_USER $BONITO_DEFAULT_PROJ)}
 fi
+tmp_base_image=
+#echo "base image"
+#echo $base_image
 
 if [ "x$is_verbose" = "x1" ]; then
   echo user: $user
