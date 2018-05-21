@@ -22,6 +22,7 @@ a docker wrapper for academic laboratories.
 % cp bonito.conf{.example,}
 % cp volume/home/default{.example,}
 ```
+(note: for multi-node setting, /share should be shared through NFS etc.)
 4. (multinode mode only) install and run docker registry.  
   - set registry server ip address to 'BONITO_REGIS_SERVER' in bonito.conf
   - exec following command at registry server machine
