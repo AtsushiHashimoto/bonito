@@ -1,11 +1,11 @@
 # bonito
 a docker wrapper for academic laboratories.
 
-# who should use bonito
+# who should use bonito?
 - those who want to give your student a root permission of the server.
 - those who do not want your students change server settings.
 
-# alternatives whith you should consider before install bonito
+# alternatives you should consider before installing bonito
 - kubeflow (provide jupyter env to your student.)
 - Rancher (provide web gui to control containers.)
 
