@@ -21,6 +21,7 @@ $(bonito_print_basic_options)
 $1
 EOF
 }
+
 ###################
 ##### CREATE ######
 
@@ -147,8 +148,10 @@ function bonito_snapshot {
 #####   RUN  ######
 function print_options_bonito_run {
   cat <<EOF
-    --command          direct command executed in the container.
+    --command,-c      direct command executed in the container.
                       (Default: /bin/sh)
+    --options,-o       additional options passed to 'docker run' execution.
+                      (e.g. -o '-p 18888:8888' to connet host port to container's 8888 port.)
 EOF
 }
 
@@ -175,19 +178,27 @@ function bonito_run {
   fi
 
   # if command is directed, run it as a new container
+  if [ "x$opt" == "x" ]; then
+    opt="--rm"
+  fi
   #opt="$BONITO_RUN_OPT -u $(id -u):$(id -g) $(bonito_mount_option) $(bonito_port_option)"
-  opt="$BONITO_COMMON_RUN_OPT $BONITO_RUN_OPT $(bonito_mount_option) $(bonito_port_option)"
+  opt_="$BONITO_COMMON_RUN_OPT $BONITO_RUN_OPT $opt $(bonito_mount_option) $(bonito_port_option)"
   if [ $command != $BONITO_SHELL ]; then
     container=$(bonito_container)-$(bonito_timestamp_msec)
-    docker run $opt --name=$container -ti $image $command
+    docker run $opt_ --name=$container -ti $image $command
     return $?
   fi
 
   # if container is not exists, run the image.
   container=$(bonito_container)
   if [ $(bonito_container_exists) -eq 0 ]; then
-    docker run $opt --name=$container -ti $image $command
+    docker run $opt_ --name=$container -ti $image $command
     return $?
+  fi
+
+  if [ "x$opt" != "x" ]; then
+    bonito_warn "run option '$opt' is specified, but ignored."
+    bonito_warn "To activate the options, you must shutdown the container in advance."
   fi
 
   # if image is exists, but not running, start it.
