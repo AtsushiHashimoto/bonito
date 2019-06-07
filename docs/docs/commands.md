@@ -20,10 +20,6 @@ docker imageを開始します．既に開始済みのcontainerが存在する�
     % bonito reboot [options]
 起動中のdocker containerをrebootします．
 
-## snapshot
-    % bonito snapshot [options]
-起動中のdocker containerでの変更をimageに反映させます．
-
 ## help
     % bonito --help．
 このページと同様の内容を表示する．コマンド名が指定されている場合は，そのコマンドのhelpを表示する．

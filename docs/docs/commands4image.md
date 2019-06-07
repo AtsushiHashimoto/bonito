@@ -13,9 +13,3 @@
 - 何もなし
 
     例) bonito delete
-
-## snapshot独自のオプション
-- 何もなし
-
-    例) bonito snapshot
-    

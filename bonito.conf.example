@@ -8,14 +8,19 @@ BONITO_HOME_DIR=$BONITO_DIR/volume/home
 # 仮想環境がマウントするディレクトリの名前
 # (仮想環境内で同名のディレクトリとしてマウントされる)
 # ディレクトリ名の後ろに:roをつけるとread onlyでマウントされます．
-# e.g.) BONITO_MOUNTS="/NAS1:ro /NAS2:ro /NAS3:ro /NAS4:ro /NAS5:ro"
-BONITO_MOUNTS=""
+# e.g.) BONITO_MOUNTS="/dev /tmp /NAS1:ro /NAS2:ro /NAS3:ro /NAS4:ro /NAS5:ro"
+BONITO_MOUNTS="/dev /tmp"
 
 # docker registryを運用するサーバのIPアドレス
 # ノードが一つの場合はlocalhostでOK，
 # ノードが複数の場合は/etc/hostsで参照できる名前かIPアドレスを指定
-BONITO_REGIS_SERVER=localhost
+#BONITO_REGIS_SERVER=localhost
+BONITO_REGIS_SERVER=
 # docker registryが使うport. 他のシステムと競合しない限り，変更の必要なし．
 BONITO_REGIS_PORT=5000
 
-BONITO_COMMON_RUNOPT="--runtime=nvidia"
+#BONITO_COMMON_RUNOPT="--runtime=nvidia"
+BONITO_COMMON_RUNOPT=""
+
+# create時にbase_imageを指定しない場合に使われるdefaultのイメージ
+BONITO_DEFAULT_IMAGE="nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04"

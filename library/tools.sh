@@ -247,6 +247,23 @@ function bonito_is_registry_server {
   return 0
 }
 
+function bonito_create_dockerfile {
+  dockerfile_dir="$BONITO_USER_DIR/$project"
+  mkdir -p $dockerfile_dir
+  dockerfile_tail="$dockerfile_dir/Dockerfile_tail"
+  if [ $(bonito_file_exists $dockerfile_tail) -eq 0 ]; then
+    bonito_warn "Please create `$dockerfile_tail` before creating the image.\n ex) RUN pip install tensorflow > $dockerfile_tail"
+    return 1
+  fi
+  dockerfile_head="$BONITO_DIR/Dockerfile_head"
+  if [ $(bonito_file_exists $dockerfile_head.$HOSTNAME) -eq 1 ]; then
+    dockerfile_head=$dockerfile_head.$HOSTNAME
+  fi
+  dockerfile=$dockerfile_dir/Dockerfile.$HOSTNAME
+  cp $dockerfile_head $dockerfile
+  cat $dockerfile_tail >> $dockerfile
+  echo $dockerfile
+}
 #function bonito_port_offset {
 #
 #  echo $(expr $BONITO_PORT_OFFSET + $BONITO_USER_PORT_STEP * $offset)
