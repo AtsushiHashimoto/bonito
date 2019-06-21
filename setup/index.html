@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>設定方法(サーバ管理者向け) - Bonito Documentation</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "\u8a2d\u5b9a\u65b9\u6cd5(\u30b5\u30fc\u30d0\u7ba1\u7406\u8005\u5411\u3051)";
+    var mkdocs_page_input_path = "setup.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Bonito Documentation</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">設定方法(サーバ管理者向け)</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#_1">セットアップのガイド(サーバ管理者向け)</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l3" href="#_2">前提</a></li>
+        
+            <li><a class="toctree-l3" href="#_3">設定</a></li>
+        
+        </ul>
+    
+
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../how-to-start/">設定方法(ユーザ向け)</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../commands/">基本操作一覧</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../common_options/">共通のオプション</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../commands4image/">イメージ操作のオプション</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../commands4container/">コンテナ操作のオプション</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="../contribute/">プロジェクトに参加する</a>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Bonito Documentation</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>設定方法(サーバ管理者向け)</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="_1">セットアップのガイド(サーバ管理者向け)</h1>
+<h2 id="_2">前提</h2>
+<p>計算用サーバは必ずしもGPUクラスタである必要はありませんが，現状はubuntuのみが公式サポートされています(基本的にはlinux全般で動くはず)．
+HeteroなPC群であっても，nfsなどでディレクトリ共有がされてさえいれば動きます．
+逆にいえば，リソースの管理などは行いません．どの仮想環境からもPC上のすべてのGPUが見えます．
+言い換えれば，計算用サーバの利用者は他のチャンネルで繋がっており，リソース管理は別の方法で行うことが想定されています．</p>
+<h2 id="_3">設定</h2>
+<ol>
+<li>
+<p>nfsなどの共有ディレクトリ(/path/to/nfs)上にbonitoをcloneします．</p>
+<p>% cd /path/to/nfs/
+% git clone https://github.com/AtsushiHashimoto/bonito.git bonito</p>
+</li>
+<li>
+<p>設定ファイルを編集します．</p>
+<p>% cd bonito
+% cp bonito.conf.example bonito.conf
+% vim bonito.conf</p>
+<ul>
+<li>
+<p>BONITO_DIR /path/to/nfs/BONITO_DIRを指定してください．</p>
+</li>
+<li>
+<p>BONITO_HOME_DIR bonitoのdockerファイルが利用するホームディレクトリを指定します．基本は $BONITO_DIR/volume/home となります．</p>
+</li>
+<li>
+<p>BONITO_MOUNTS defaultでマウントするべきディレクトリ(学習用データが置かれたNASなど)はここで指定できます．<br />
+  注) /dev, /tmpは常に指定することをお勧めします．特に/dev/shmをマウントしないとプログラム実行時にshared memoryのサイズが不足するエラーがでる場合があります．<br />
+  ディレクトリ名の後ろに:roをつけるとread onlyでマウントされます．<br />
+  e.g.) <code>BONITO_MOUNTS="/tmp /dev /NAS1:ro /NAS2"</code><br />
+  これでhostPC上の/NAS1は，docker container内で/NAS1として，read onlyでマウントされます．
+  hostPC上の/NAS2は，container内で/NAS2として，read/write可能なディレクトリとしてマウントされます．</p>
+</li>
+<li>
+<p>BONITO_COMMON_RUNOPT="--runtime=nvidia"</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Dockerfileの全ユーザ共通部分を作成します．  </p>
+<p><code>% cp Dockerfile_head.example Dockerfile_head</code><br />
+<code>% vim Dockerfile_head</code></p>
+</li>
+<li>
+<p>bonitoコマンドをpathが通っているディレクトリに追加します(各ホストで実行)．  </p>
+</li>
+</ol>
+<p><code>% ln -s /path/to/nfs/bonito /usr/bin/bonito</code></p>
+<ol>
+<li><a href="./how-to-use.html">ユーザとして利用</a>し，テストをします．</li>
+</ol>
+<h3 id="dockerfile">ホスト毎に異なるDockerfileを生成するようにする</h3>
+<p>3のDockerfile_headはホスト毎に異なるファイルを使うようにもできます．
+例えば，host名が server2のマシンにのみ適用するDockerfile_headは， ファイル名をDockerfile_head.server2 とすれば，bonitoは実行したPCの環境変数$HOSTNAMEから自動的にファイルを特定し，それをDockerfile_headとして利用します．</p>
+<h2 id="_4"></h2>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../how-to-start/" class="btn btn-neutral float-right" title="設定方法(ユーザ向け)">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../how-to-start/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js" defer></script>
+      <script src="../search/main.js" defer></script>
+
+</body>
+</html>
