@@ -98,7 +98,7 @@ function bonito_mount_option {
     v_=$(echo $v | sed -e "s/:ro//")
     common_mount="${common_mount} -v ${v_}:${v}"
   done
-  echo "-v $(bonito_home):/root ${common_mount}"
+  echo "-v $(bonito_home):$BONITO_CONTAINER_HOME ${common_mount}"
 }
 
 function bonito_port_option {
@@ -215,7 +215,7 @@ function bonito_timestamp_msec {
 }
 
 function bonito_ip_addresses {
-  ifconfig -a | grep inet[^6] | sed 's/.*inet[^6][^0-9]*\([0-9.]*\)[^0-9]*.*/\1/'
+  ifconfig -a 2> /dev/null | grep inet[^6] | sed 's/.*inet[^6][^0-9]*\([0-9.]*\)[^0-9]*.*/\1/'
 }
 
 function bonito_is_registry_server {

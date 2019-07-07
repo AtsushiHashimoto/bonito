@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cd `dirname $0`
 . ../bonito.conf
 . ../bonito_sys.conf
@@ -104,6 +106,15 @@ do
             command=${2}
             shift
         ;;
+        --options|-o)
+            opt=${2}
+            shift
+        ;;
+
+        --preset)
+            preset=${2}
+            shift
+        ;;
 
         -*)
             echo "[ERROR] Invalid option '${1}'"
@@ -126,6 +137,8 @@ my_silent_exec ${project:=$BONITO_DEFAULT_PROJ}
 my_silent_exec ${tag:=latest}
 my_silent_exec ${num_gpu:=1}
 my_silent_exec ${command:=""}
+my_silent_exec ${opt:=''}
+my_silent_exec ${preset:=''}
 
 #port_offset=$(bonito_port_offset)
 

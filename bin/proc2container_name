@@ -1,3 +1,4 @@
+#!/bin/bash 
 
 pids=$(nvidia-smi -q --display=PIDS | grep 'Process ID' | awk -F': ' '{print $2}')
 
