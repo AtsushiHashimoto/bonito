@@ -14,8 +14,13 @@ BONITO_MOUNTS="/tmp /dev/shm"
 # docker registryを運用するサーバのIPアドレス
 # ノードが一つの場合はlocalhostでOK，
 # ノードが複数の場合は/etc/hostsで参照できる名前かIPアドレスを指定
-BONITO_REGIS_SERVER=localhost
+#BONITO_REGIS_SERVER=localhost
+BONITO_REGIS_SERVER=
 # docker registryが使うport. 他のシステムと競合しない限り，変更の必要なし．
 BONITO_REGIS_PORT=5000
 
-BONITO_COMMON_RUNOPT="--runtime=nvidia"
+#BONITO_COMMON_RUNOPT="--runtime=nvidia"
+BONITO_COMMON_RUNOPT=""
+
+# create時にbase_imageを指定しない場合に使われるdefaultのイメージ
+BONITO_DEFAULT_IMAGE="nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04"

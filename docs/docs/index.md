@@ -1,55 +1,38 @@
 # Welcome to Bonito
 
-Bonitoは小規模な研究室などでGPUサーバを共用しながら，各自が自由に仮想PCをいじくり回すことができるようにするためのオープンソースプロジェクトです．
+bonitoは機械学習系研究者・学生を想定したDockerのwrapperです．本来のDockerはWebサービスを最小構成でモジュール化した仮想マシンの連携によって構築することで，システムのメンテナンス性を向上させることを目的として開発されました．このため，Dockerはモジュール間の連携を始めとして非常に多くの機能を有しています．
+近年では，[k8s](https://kubernetes.io/ja/docs/concepts/overview/what-is-kubernetes/)などに代表されるように，そのフレームワークが計算用サーバ上のGPUの共有などの目的でも用いられるようになってきています．
+このような用途では，必要とされる機能は限定的となります．また，そもそも機械学習エンジニアにとって，Webサービス構築のためのツールであるDockerの知識習得が必要である現状は必ずしも最適ではないというのが，bonitoの基本的な思想です．
 
-- [githubのプロジェクトページ](https://github.com/AtsushiHashimoto/bonito)
+このような背景・思想に基づいて，bonitoは下記の機能を提供します．
 
-# 哲学
-Teachers be lazy! 最小の構成で，学生が自由にsudoできるお砂場仮想環境をGPUサーバ上で構築する．
+1. 機械学習エンジニア・学生にroot権限をもった箱庭的な仮想PCを配布する（他の人に迷惑をかけない，自由な環境の配布）
+2. 最低限のオプションのみでDockerを使った開発を可能とする（初期教育コストの削減）
+3. 組織・グループ単位でのdefault環境の構築・配布
 
-## 誰に向けたプロジェクト?
-研究室でGPUサーバを学生に共有させており，管理者権限は教員(or係の学生)が握っている研究室．
+特にk8sとの違いは，クラウド環境での利用を想定せず，研究室内のオンプレサーバなどでも簡単に使える，という点にあります．
+なお，他にも[singularity](https://www.ecomottblog.com/?p=3903)という選択肢がありますのでbonitoを使う前に，これらのツールも検討すると良いかもしれません．
 
-## 何ができるの?
-- 学生が他のユーザに迷惑できずに自由にsudoできる仮想PCをGPUサーバ上で配布できる．
-- dockerに関する初期教育コストなく，仮想PCを利用させることができる．
+## Hello bonito!
 
-## ユーザ側の利用イメージ
-1. 初回: 研究室標準のdocker imageを複製し，自分用のimageを作成)
-  % bonito create [--user my_name]
+下記コマンドのみで仮想PCにアクセスできます．  
 
-2. docker image作成後: 自分用のimageを起動 (すでに起動している場合は，接続)
-  % bonito run
-
-3. docker imageの変更後: 自分用のimageを更新（container終了後も変更内容が保持されるようにする)
-  % bonito snapshot
-
-## 管理者側の利用イメージ
-0. 複数のGPUサーバで共通のdocker imageを使う時のみ:
-  - NFSなどを使い，dockerのhomeディレクトリを全サーバで共有する．
-  - docker_repositoryの設定を行い，docker imageをサーバを跨いでpullできるようにする
-1. bonitoをpullする
-  % mv /path/to/bonito
-  % git clone https://github.com/AtsushiHashimoto/bonito.git bonito
-2. bonito.confファイルを編集し，初期設定を行う
-  % vim /path/to/bonito/bonito.conf
-3. nvidia-docker2のimage (base_image)をpullする
-  % docker pull <<base_imageの名前>>
-4. base_imageのコンテナを立ち上げ，研究室の環境に合わせた設定を行う
-  % bonito create -u default -b <<base_imageの名前>>
-  % bonito run -u default
-  % bonito snapshot
+​     ```% bonito run```
 
 # FAQ
 
-1. KubernetesやKubeflowと違って，研究室など，実験に特化して，その後のクラウドでのローンチなどが不要なユーザに，最小のセットアップでの仮想環境配布を実現します．
-2. dockerのwrapperとなっているため，dockerを使ってできることは，原理的には何でも出来ます．
- - [dockerについて:]
- - nvidia-docker2を使ったGPU利用
-3. JupyterやTensorboardは使えるの??
- - imageを起動する際に，dockerコマンドにオプションを渡すことで利用できます．
-  - 方法1: コマンドラインで指定
-    % bonito run -o "-p 18888:8888 -p 16006:6006"
-  - 方法2: ユーザごとの設定ファイルで指定
-    % vim ~/.bonito/bonito.conf
-    BONITO_OPTION_AT_RUN4DEFAULT="-p 18888:8888 -p 16006:6006"
+1. `k8s`と何が違うの?  
+   -> 研究室など，実験に特化していて，その後のクラウドでのローンチなどが不要なユーザに，最小のセットアップでの仮想環境配布を実現します．k8sはクラウド上では簡単に構築可能ですが，オンプレのサーバではまず，クラウドサービスを構築しないとならず，導入が非常に難しいです．bonitoはnfsさえあれば設定ファイルの編集のみで簡単に導入が可能です．
+2. singularityと何が違うの?  
+   -> bonitoはdockerベースなので，基本的にdockerでできることは何でもできます．また，dockerのオプションを使えるため，web上のdocker用のdocumentは，そのままbonitoにも役立ちます．nvidia-docker2との連携やDockerfileとセットでのコードの配布など，dockerユーザと直接つながることができます．
+3. 好きなエディタを使ってプログラミングできる?  
+   -> サーバ上にnfsがあれば，ローカルのPCでコンテナのホームディレクトリをマウントすることで，好きなエディタを使ったプログラムの編集が可能です．また，tensorboardによるモニタリングなども，logディレクトリをローカルPCで指定することで可能となります．
+4. Jupyterは使える??  
+   -> Container作成時にポートを指定することで，Jupyterも利用可能です．   
+   例) docker runの実行時にオプションを渡す(-o)ことで，ホストの18888番ポートをコンテナの8888ポートに接続する例  
+   ```% bonito run -o "-p 18888:8888"```   
+   なお，下記の設定ファイルに設定を書けば，上記は省略可能です．  
+   ```% vim ~/.bonito/bonito.conf```  
+   ```BONITO_OPTION_AT_RUN4DEFAULT="-p 18888:8888"```
+5. Dockerfileはどこに？  
+   bonitoで作成されたイメージに対応するdockerファイルは各ユーザのホスト上のホームディレクトリに，`~/.bonito/default.Dockerfile`の名前で作成されます．

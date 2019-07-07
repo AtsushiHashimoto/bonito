@@ -21,7 +21,6 @@ exp_text_reboot="shutdown the container, then, run it again from image."
 
 exp_text_create="create a new project image. It will also create your home directory for your projects if not exists.)"
 exp_text_delete="delete your docker image safely."
-exp_text_snapshot="commit and push changes of the docker container to the image in registry."
 
 function usage {
     cat <<EOF
@@ -37,7 +36,6 @@ Command:
 
     create            $exp_text_create
     delete            $exp_text_delete
-    snapshot          $exp_text_snapshot
 
 
 Basic Options:
@@ -135,6 +133,7 @@ my_silent_exec ${num_gpu:=1}
 my_silent_exec ${command:=$BONITO_SHELL}
 my_silent_exec ${opt:=''}
 my_silent_exec ${preset:=''}
+
 #port_offset=$(bonito_port_offset)
 
 image=$(bonito_image)
@@ -142,7 +141,7 @@ tmp_base_image=$(bonito_image_custom $BONITO_DEFAULT_USER $project)}
 if [ $(bonito_image_exists $tmp_base_image) -eq 1 ]; then
   my_silent_exec ${base_image:=$tmp_base_image}
 else
-  my_silent_exec ${base_image:=$(bonito_image_custom $BONITO_DEFAULT_USER $BONITO_DEFAULT_PROJ)}
+  my_silent_exec ${base_image:=$BONITO_DEFAULT_IMAGE}
 fi
 tmp_base_image=
 #echo "base image"
@@ -154,7 +153,7 @@ if [ "x$is_verbose" = "x1" ]; then
 fi
 
 # the list of subcommands
-subcommands=(run shutdown reboot  create delete snapshot)
+subcommands=(run shutdown reboot  create delete)
 
 containsElement () {
   local e match="$1"

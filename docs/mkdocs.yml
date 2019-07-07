@@ -1,3 +1,12 @@
 site_name: Bonito Documentation
 theme: readthedocs
 
+pages:
+  - Home: index.md
+  - 設定方法(サーバ管理者向け): setup.md
+  - 設定方法(ユーザ向け): how-to-start.md
+  - 基本操作一覧: commands.md
+  - 共通のオプション: common_options.md
+  - イメージ操作のオプション: commands4image.md
+  - コンテナ操作のオプション: commands4container.md
+  - プロジェクトに参加する: contribute.md

@@ -50,40 +50,31 @@ function bonito_create {
 }
 
 function bonito_create_image {
+  image=$(bonito_image)
+
+  # backup old image
   if [ $(bonito_image_exists) -eq 1 ]; then
-    echo "Before creating a new image, delete existing image by 'bonito delete'"
-    echo "Otherwise, you can create another project image by 'bonito create -p <other_project_name>'"
-    return 1
+    image_timestamped=$(bonito_image_custom $user $project $(bonito_timestamp_sec))
+    docker tag $image $image_timestamped
+    docker rmi $image
   fi
 
   if [ $(bonito_image_exists $base_image) -eq 0 ]; then
     bonito_warn "'$base_image' not found."
     echo $base_image | grep 'bonito' > /dev/null
     if [ $? -eq 1 ]; then
-      bonito_info "maybe, execute 'docker pull $base_image' to get the base image."
+      bonito_info "Executing 'docker pull $base_image' may solve the problem."
     fi
     return 1
   fi
 
-  image_timestamped=$(bonito_image_custom $user $project $(bonito_timestamp_sec))
-  image=$(bonito_image)
-  docker tag $base_image $image_timestamped
-  ret=$?
-  if [ $ret -gt 0 ]; then
-    bonito_error "Failed to tag base image ($base_image -> $image_timestamped)."
-    return 1
+  dockerfile=$(bonito_create_dockerfile)
+  args="--build-arg USER_NAME=$user --build-arg USER_ID=`id -u $user` --build-arg GROUP_ID=`id -g $user` --build-arg BASE_IMAGE=$base_image"
+  if [ "x$HTTP_PROXY" != "x" ]; then
+    args="$args --build-arg HTTP_PROXY=$HTTP_PROXY"
   fi
-  docker tag $image_timestamped $image
-  ret=$?
-  if [ $ret -gt 0 ]; then
-    bonito_error "Failed to tag image with timestamp as latest ($image_timestamped -> $image)."
-    return 1
-  fi
-  docker push $image
-  if [ $ret -gt 0 ]; then
-    bonito_error "Failed to push the image '$image'."
-    bonito_delete
-  fi
+  echo docker build $args -f $dockerfile . -t $image
+  docker build $args -f $dockerfile . -t $image
 }
 
 function bonito_create_home_dir {
@@ -116,6 +107,7 @@ function help_bonito_delete {
 function bonito_delete {
   bonito_shutdown
   if [ $(bonito_image_exists) -eq 1 ]; then
+    echo docker rmi $(bonito_image)
     docker rmi $(bonito_image)
   fi
   home_dir=$(bonito_home)
@@ -123,25 +115,6 @@ function bonito_delete {
     bonito_info "home directory ($home_dir) is not deleted automatically. If you want to delete it, do manually."
   fi
 }
-
-###################
-#### SNAPSHOT #####
-
-function help_bonito_snapshot {
-  help_bonito_basic ""
-}
-function bonito_snapshot {
-  image_timestamped=$(bonito_image_custom $user $project $(bonito_timestamp_sec))
-  image_latest=$(bonito_image)
-  if [ $(bonito_container_exists) -eq 0 ]; then
-    bonito_error "Container '$(bonito_container)' not found."
-    return 1
-  fi
-  docker commit $(bonito_container) $image_timestamped
-  docker tag $image_timestamped $image_latest
-  docker push $image_latest
-}
-
 
 
 ###################
@@ -171,8 +144,10 @@ function bonito_run {
   fi
 
   # always pull to update changes to images by `bonito snapshot`
-  docker pull $image
-  res=$?
+  if [ "x$BONITO_REGIS_SERVER" != "x" ]; then
+    docker pull $image
+    res=$?
+  fi
   if [ $res -eq 1 ]; then
     bonito_error "image name: $image not found. Did you create your image?"
     echo "Hint: command: $0 create --help"
@@ -207,6 +182,8 @@ function bonito_run {
     command="docker run $opt_ --name=$container -ti $image $command"
     echo $command
     $command
+    echo docker run $opt_ --name=$container -ti $image $command
+    docker run $opt_ --name=$container -ti $image $command
     return $?
   fi
 
@@ -217,8 +194,10 @@ function bonito_run {
 
   # if image is exists, but not running, start it.
   if [ $(bonito_container_exists "--filter status=running") -eq 0 ]; then
+    echo docker start $container
     docker start $container
   fi
+  echo docker attach $container
   docker attach $container
   return $?
 }
