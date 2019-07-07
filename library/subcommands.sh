@@ -150,8 +150,10 @@ function print_options_bonito_run {
   cat <<EOF
     --command,-c      direct command executed in the container.
                       (Default: /bin/sh)
-    --options,-o       additional options passed to 'docker run' execution.
-                      (e.g. -o '-p 18888:8888' to connet host port to container's 8888 port.)
+    --options,-o      additional options passed to 'docker run' execution.
+                      (e.g. -o '-p 18888:8888' to connect host port to container's 8888 port.)
+    --preset,-p      set options preset in environment.
+                      (e.g. -p jupyter to add options set by 'export BONITO_PRESET_JUPYTER="-p 18888:8888"')
 EOF
 }
 
@@ -178,21 +180,33 @@ function bonito_run {
   fi
 
   # if command is directed, run it as a new container
-  if [ "x$opt" == "x" ]; then
-    opt="--rm"
-  fi
-  #opt="$BONITO_RUN_OPT -u $(id -u):$(id -g) $(bonito_mount_option) $(bonito_port_option)"
-  opt_="$BONITO_COMMON_RUN_OPT $BONITO_RUN_OPT $opt $(bonito_mount_option) $(bonito_port_option)"
+  preset_=BONITO_PRESET_${preset^^}
+  preset_=$(eval "echo \$$preset_")
+
+  opt_="$BONITO_COMMON_RUN_OPT $BONITO_USER_RUN_OPT $opt $preset_ $(bonito_mount_option) $(bonito_port_option)"
   if [ $command != $BONITO_SHELL ]; then
-    container=$(bonito_container)-$(bonito_timestamp_msec)
-    docker run $opt_ --name=$container -ti $image $command
+    if [ "x$preset" != "x" ]; then
+      container=$(bonito_container).$preset
+    else
+      container=$(bonito_container)-$(bonito_timestamp_msec)
+    fi
+    if [ "x$opt" == "x" ]; then
+      if [ "x$preset_" == "x" ]; then
+        opt_="$opt_ --rm"
+      fi
+    fi
+    command="docker run $opt_ --name=$container -ti $image $command"
+    echo $command
+    $command
     return $?
   fi
 
   # if container is not exists, run the image.
   container=$(bonito_container)
   if [ $(bonito_container_exists) -eq 0 ]; then
-    docker run $opt_ --name=$container -ti $image $command
+    command="docker run $opt_ --name=$container -ti $image $command"
+    echo $command
+    $command
     return $?
   fi
 
