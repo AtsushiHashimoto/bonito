@@ -66,6 +66,8 @@ else
   shift
 fi
 
+opt_buf=""
+
 # parse options
 while [ $# -gt 0 ];
 do
@@ -113,21 +115,24 @@ do
 
 
         -*)
-            echo "[ERROR] Invalid option '${1}'"
-            show_help=1
+            opt_buf="$opt_buf ${1}"
+            #echo "[ERROR] Invalid option '${1}'"
+            #show_help=1
         ;;
         *)
-            # if no --flag, treat as --user ${1}
-            if [ $subcommand == 'exec']; then
-              command=${1}
-            elif [ $subcommand == 'run']; then
-              opt=${1}
-            else
-              user=${1}
-            fi
+            opt_buf="${opt_buf} ${1}"
     esac
     shift
 done
+
+if [ "${opt_buf}x" != "x" ]; then
+  if [ $subcommand == 'run' ]; then
+    opt="${opt} ${opt_buf}"
+  fi
+  if [ $subcommand == 'exec' ]; then
+    command=$opt_buf
+  fi
+fi
 
 function my_silent_exec {
 	echo $1 > /dev/null

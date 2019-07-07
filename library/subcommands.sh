@@ -149,7 +149,7 @@ function bonito_run {
   opt_="$BONITO_COMMON_RUN_OPT $BONITO_USER_RUN_OPT $opt $(bonito_mount_option) $(bonito_port_option)"
   container=$(bonito_container)
   if [ $(bonito_container_exists) -eq 0 ]; then
-    com="docker run $opt_ --name=$container -ti $image $BONITO_SHELL"
+    com="docker run $opt_ --name=$container -ti $image $BONITO_SHELL $BONITO_SHELL_OPT"
     echo $com
     bash -c "$com"
     return $?
@@ -222,7 +222,7 @@ function print_options_bonito_exec {
 EOF
 }
 function help_bonito_exec {
-  help_bonnito_basic "$(print_options_bonito_exec)"
+  help_bonito_basic "$(print_options_bonito_exec)"
 }
 
 function bonito_exec {
@@ -240,7 +240,7 @@ function bonito_exec {
   fi
 
 
-  com="docker exec -ti $container "${command}""
+  com="docker exec -ti $container $BONITO_SHELL -c \"${command}\""
   echo $com
   bash -c "$com"
   return $?
