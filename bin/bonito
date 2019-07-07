@@ -13,12 +13,15 @@ else
   touch $MY_CONF
 fi
 
-exp_text_run="start (or attach to) the docker container."
+exp_text_run="create a docker container from the image and run it."
 exp_text_shutdown="stop and remove the docker container"
 exp_text_reboot="shutdown the container, then, run it again from image."
 
 exp_text_create="create a new project image. It will also create your home directory for your projects if not exists.)"
 exp_text_delete="delete your docker image safely."
+
+exp_text_attach="log in to the console of the running container. It is generally not recommended to work in the container's console directly."
+exp_text_exec="run a command in the running container"
 
 function usage {
     cat <<EOF
@@ -31,6 +34,9 @@ Command:
     run	              $exp_text_run
     shutdown          $exp_text_shutdown
     reboot            $exp_text_reboot
+
+    exec              $exp_text_exec
+    attach            $exp_text_attach
 
     create            $exp_text_create
     delete            $exp_text_delete
@@ -119,7 +125,7 @@ my_silent_exec ${user:=$USER}
 my_silent_exec ${project:=$BONITO_DEFAULT_PROJ}
 my_silent_exec ${tag:=latest}
 my_silent_exec ${num_gpu:=1}
-my_silent_exec ${command:=$BONITO_SHELL}
+my_silent_exec ${command:=""}
 
 #port_offset=$(bonito_port_offset)
 
@@ -140,7 +146,7 @@ if [ "x$is_verbose" = "x1" ]; then
 fi
 
 # the list of subcommands
-subcommands=(run shutdown reboot  create delete)
+subcommands=(run shutdown reboot create delete attach exec)
 
 containsElement () {
   local e match="$1"

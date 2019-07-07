@@ -121,8 +121,6 @@ function bonito_delete {
 #####   RUN  ######
 function print_options_bonito_run {
   cat <<EOF
-    --command,-c      direct command executed in the container.
-                      (Default: /bin/sh)
     --options,-o       additional options passed to 'docker run' execution.
                       (e.g. -o '-p 18888:8888' to connet host port to container's 8888 port.)
 EOF
@@ -152,43 +150,25 @@ function bonito_run {
     return 1
   fi
 
+
   #opt="$BONITO_RUN_OPT -u $(id -u):$(id -g) $(bonito_mount_option) $(bonito_port_option)"
   opt_="$BONITO_COMMON_RUN_OPT $BONITO_RUN_OPT $opt $(bonito_mount_option) $(bonito_port_option)"
-  if [ $command != $BONITO_SHELL ]; then
-    container=$(bonito_container)-$(bonito_timestamp_msec)
-    echo docker run --rm $opt_ --name=$container -ti $image $command
-    docker run --rm $opt_ --name=$container -ti $image $command
-    return $?
-  fi
-
-  # if container is not exists, run the image.
   container=$(bonito_container)
   if [ $(bonito_container_exists) -eq 0 ]; then
-    echo docker run $opt_ --name=$container -ti $image $command
-    docker run $opt_ --name=$container -ti $image $command
+    echo docker run $opt_ --name=$container -ti $image $BONITO_SHELL
+    docker run $opt_ --name=$container -ti $image $BONITO_SHELL
     return $?
   fi
 
-  if [ "x$opt" != "x" ]; then
-    bonito_warn "run option '$opt' is specified, but ignored."
-    bonito_warn "To activate the options, you must shutdown the container in advance."
-  fi
-
-  # if image is exists, but not running, start it.
-  if [ $(bonito_container_exists "--filter status=running") -eq 0 ]; then
-    echo docker start $container
-    docker start $container
-  fi
-  echo docker attach $container
-  docker attach $container
-  return $?
+  docker_warn "A container '$container' already exists. To delete it and start a new container, type 'bonito shutdown' and then retry 'bonito run [options]'."
+  return 1
 }
 
 ###################
 #### SHUTDOWN #####
 
 function help_bonito_shutdown {
-  help_bonito_basic shutdown "shutdown running container." ""
+  help_bonito_basic ""
 }
 
 function bonito_shutdown {
@@ -206,7 +186,7 @@ function bonito_shutdown {
 ##### REBOOT ######
 
 function help_bonito_reboot {
-  help_bonito_basic reboot "reboot (shutdown/create) the project pod." ""
+  help_bonito_basic ""
 }
 
 function bonito_reboot {
@@ -214,82 +194,55 @@ function bonito_reboot {
   bonito_run
 }
 
-################
-##### init #####
-function help_bonito_admin {
-  cat <<EOF
-$(basename ${0}) ${subcommand}: $(echo \$exp_text_$subcommand)
+####################
+###### ATTACH ######
+function help_bonito_attach {
+  help_bonnito_baic ""
+}
 
-Usage:
-    sudo $(basename ${0}) $subcommand
+function bonito_attach {
+  # if container is not exists, run the image.
+  container=$(bonito_container)
+  if [ $(bonito_container_exists) -eq 0 ]; then
+    bonito_error "The container '$container' was not found. Execute 'bonito run' first."
+    return 1
+  fi
+  # if image is exists, but not running, start it.
+  if [ $(bonito_container_exists "--filter status=running") -eq 0 ]; then
+    bonito_warn "Start the stopped container before attaching to it."
+    echo docker start $container
+    docker start $container
+  fi
+  echo docker attach $container
+  docker attach $container
+  return $?
+}
+function print_options_bonito_exec {
+  cat <<EOF
+    --command,-c      direct command executed in the container.
+                      (Default: $BONITO_SHELL)
 EOF
 }
-
-function help_bonito_init {
-  help_bonito_admin
+function help_bonito_exec {
+  help_bonnito_basic "$(print_options_bonito_exec)"
 }
 
-function bonito_init {
-  bonito_setup_registry
-  systemctl daemon-reload
-  systemctl restart docker
-}
-
-#######################
-##### START REGIS #####
-function help_bonito_start_registry {
-  help_bonito_admin
-}
-
-function bonito_start_registry {
-  if [ $(bonito_is_registry_server) -eq 0 ]; then
-    bonito_error "registry can be started only on the registry server node ($BONITO_REGIS_SERVER)"
+function bonito_exec {
+  # if container is not exists, run the image.
+  container=$(bonito_container)
+  if [ $(bonito_container_exists) -eq 0 ]; then
+    bonito_error "The container '$container' was not found. Execute 'bonito run' first."
     return 1
   fi
-  bonito_start_registry_
-}
-
-#######################
-##### START REGIS #####
-function help_bonito_stop_registry {
-  help_bonito_admin
-}
-
-function bonito_stop_registry {
-  if [ $(bonito_is_registry_server) -eq 0 ]; then
-    bonito_error "registry can be stopped only on the registry server node ($BONITO_REGIS_SERVER)"
-    return 1
+  # if image is exists, but not running, start it.
+  if [ $(bonito_container_exists "--filter status=running") -eq 0 ]; then
+    bonito_warn "Start the stopped container before attaching to it."
+    echo docker start $container
+    docker start $container
   fi
-  bonito_stop_registry_
-}
 
 
-########################
-#####   ADD_USER   #####
-function help_bonito_add_user {
-  cat <<EOF
-$(basename ${0}) ${subcommand}: $(echo \$exp_text_$subcommand)
-
-Usage:
-    sudo $(basename ${0}) $subcommand --user <user_name>]
-
-Options:
-    --user,-u      target user name.
-
-EOF
-}
-function bonito_add_user {
-  if [ "x" == "x$user" ]; then
-    bonito_error "--user/-u must be specified with $subcommand"
-    return 1
-  fi
-  gpasswd -a $user docker
-  systemctl daemon-reload
-  echo "restart dockerd by command:"
-  echo " # systemctl restart docker "
-  echo "Caution: this will stop all the running containers on the machine."
-
-  if [ $(bonito_is_in_file $BONITO_USER_LIST $user) -eq 0 ]; then
-    echo "$user $(expr 1 + $(cat $BONITO_USER_LIST | wc -l ))" >> $BONITO_USER_LIST
-  fi
+  echo docker exec -ti $container "${command}"
+  docker exec -ti $container "${BONITO_SHELL}; ${command}"
+  return $?
 }
