@@ -1,5 +1,7 @@
 # 下記の変数をユーザごとに上書きしたい場合は $BONITO_HOME_DIR/bonito.conf をユーザごとに作成する．
 
+BONITO_PREFIX="bonito"
+
 # BONITO_DIR: NFSなどで共有された(他のmember nodeから見える)ディレクトリを指定．
 # defaultの設定では，ここにユーザのdocker image内で使われるhomeディレクトリの本体が置かれる．
 BONITO_DIR="/share/bonito"
@@ -12,7 +14,7 @@ BONITO_HOME_DIR=$BONITO_DIR/volume/home
 BONITO_MOUNTS="/tmp /dev/shm"
 
 
-BONITO_COMMON_RUNOPT="--runtime=nvidia"
+BONITO_COMMON_RUNOPT="--runtime=nvidia --net=host"
 
 # create時にbase_imageを指定しない場合に使われるdefaultのイメージ
 BONITO_DEFAULT_IMAGE="nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04"

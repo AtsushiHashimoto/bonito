@@ -118,7 +118,13 @@ do
         ;;
         *)
             # if no --flag, treat as --user ${1}
-            user=${1}
+            if [ $subcommand == 'exec']; then
+              command=${1}
+            elif [ $subcommand == 'run']; then
+              opt=${1}
+            else
+              user=${1}
+            fi
     esac
     shift
 done

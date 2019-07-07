@@ -64,11 +64,8 @@ function bonito_image_custom {
     tag_=$3
   fi
   image=$BONITO_PREFIX/$user_/$project_:$tag_
-  if [ "x$BONITO_REGIS_SERVER" == "x" ]; then
-    echo $image
-    return 0
-  fi
-  echo $(bonito_registry_server):$BONITO_REGIS_PORT/$image
+  echo $image
+  return 0
 }
 
 function bonito_registry_server {
@@ -264,7 +261,3 @@ function bonito_create_dockerfile {
   cat $dockerfile_tail >> $dockerfile
   echo $dockerfile
 }
-#function bonito_port_offset {
-#
-#  echo $(expr $BONITO_PORT_OFFSET + $BONITO_USER_PORT_STEP * $offset)
-#}

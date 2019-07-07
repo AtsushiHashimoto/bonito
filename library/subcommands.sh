@@ -140,26 +140,22 @@ function bonito_run {
   fi
 
   # always pull to update changes to images by `bonito snapshot`
-  if [ "x$BONITO_REGIS_SERVER" != "x" ]; then
-    docker pull $image
-    res=$?
-  fi
-  if [ $res -eq 1 ]; then
+  if [ $(bonito_image_exists) -eq 0 ]; then
     bonito_error "image name: $image not found. Did you create your image?"
     echo "Hint: command: $0 create --help"
     return 1
   fi
 
-
   opt_="$BONITO_COMMON_RUN_OPT $BONITO_USER_RUN_OPT $opt $(bonito_mount_option) $(bonito_port_option)"
   container=$(bonito_container)
   if [ $(bonito_container_exists) -eq 0 ]; then
-    echo docker run $opt_ --name=$container -ti $image $BONITO_SHELL
-    docker run $opt_ --name=$container -ti $image $BONITO_SHELL
+    com="docker run $opt_ --name=$container -ti $image $BONITO_SHELL"
+    echo $com
+    bash -c "$com"
     return $?
   fi
 
-  docker_warn "A container '$container' already exists. To delete it and start a new container, type 'bonito shutdown' and then retry 'bonito run [options]'."
+  bonito_warn "A container '$container' already exists. To delete it and start a new container, type 'bonito shutdown' and then retry 'bonito run [options]'."
   return 1
 }
 
@@ -216,10 +212,13 @@ function bonito_attach {
   docker attach $container
   return $?
 }
+
+
+####################
+###### EXEC ######
 function print_options_bonito_exec {
   cat <<EOF
     --command,-c      direct command executed in the container.
-                      (Default: $BONITO_SHELL)
 EOF
 }
 function help_bonito_exec {
@@ -241,7 +240,8 @@ function bonito_exec {
   fi
 
 
-  echo docker exec -ti $container "${command}"
-  docker exec -ti $container "${BONITO_SHELL}; ${command}"
+  com="docker exec -ti $container "${command}""
+  echo $com
+  bash -c "$com"
   return $?
 }
