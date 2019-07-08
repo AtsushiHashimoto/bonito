@@ -252,7 +252,7 @@ function bonito_create_dockerfile {
     bonito_warn "Please create `$dockerfile_tail` before creating the image.\n ex) RUN pip install tensorflow > $dockerfile_tail"
     return 1
   fi
-  dockerfile_head="$BONITO_DIR/Dockerfile_head"
+  dockerfile_head="$BONITO_DIR/Dockerfile_head${head_suffix}"
   if [ $(bonito_file_exists $dockerfile_head.$HOSTNAME) -eq 1 ]; then
     dockerfile_head=$dockerfile_head.$HOSTNAME
   fi

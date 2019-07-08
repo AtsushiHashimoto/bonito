@@ -63,16 +63,20 @@ function bonito_create_image {
     bonito_warn "'$base_image' not found."
     echo $base_image | grep 'bonito' > /dev/null
     if [ $? -eq 1 ]; then
-      bonito_info "Executing 'docker pull $base_image' may solve the problem."
+      #bonito_info "Executing 'docker pull $base_image' may solve the problem."
+      echo trying to pull $base_image automatically.
+      docker pull $base_image
     fi
-    return 1
+  fi
+
+  args="--build-arg BASE_IMAGE=$base_image"
+  head_suffix=""
+  if [ "x$HTTP_PROXY" != "x" ]; then
+    args="$args --build-arg HTTP_PROXY=$HTTP_PROXY"
+    head_suffix="_proxy"
   fi
 
   dockerfile=$(bonito_create_dockerfile)
-  args="--build-arg USER_NAME=$user --build-arg USER_ID=`id -u $user` --build-arg GROUP_ID=`id -g $user` --build-arg BASE_IMAGE=$base_image"
-  if [ "x$HTTP_PROXY" != "x" ]; then
-    args="$args --build-arg HTTP_PROXY=$HTTP_PROXY"
-  fi
   echo docker build $args -f $dockerfile . -t $image
   docker build $args -f $dockerfile . -t $image
 }
@@ -149,7 +153,7 @@ function bonito_run {
   opt_="$BONITO_COMMON_RUN_OPT $BONITO_USER_RUN_OPT $opt $(bonito_mount_option) $(bonito_port_option)"
   container=$(bonito_container)
   if [ $(bonito_container_exists) -eq 0 ]; then
-    com="docker run $opt_ --name=$container -ti $image $BONITO_SHELL $BONITO_SHELL_OPT"
+    com="docker run $opt_ --name=$container -ti $image $BONITO_SHELL"
     echo $com
     bash -c "$com"
     return $?
@@ -240,7 +244,7 @@ function bonito_exec {
   fi
 
 
-  com="docker exec -ti $container $BONITO_SHELL -c \"${command}\""
+  com="docker exec -ti $container $BONITO_SHELL_EXEC \"cd ~/ &&${command}\""
   echo $com
   bash -c "$com"
   return $?
