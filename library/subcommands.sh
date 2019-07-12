@@ -77,8 +77,9 @@ function bonito_create_image {
   fi
 
   dockerfile=$(bonito_create_dockerfile)
-  echo docker build $args -f $dockerfile . -t $image
-  docker build $args -f $dockerfile . -t $image
+  set -- $dockerfile
+  echo "cd $1 && docker build $args -f $2 . -t $image && cd -"
+  cd $1 && docker build $args -f $2 . -t $image && cd -
 }
 
 function bonito_create_home_dir {
@@ -223,6 +224,7 @@ function bonito_attach {
 function print_options_bonito_exec {
   cat <<EOF
     --command,-c      direct command executed in the container.
+    --su              execute command as the super user.
 EOF
 }
 function help_bonito_exec {
@@ -243,8 +245,12 @@ function bonito_exec {
     docker start $container
   fi
 
-
-  com="docker exec -ti $container $BONITO_SHELL_EXEC \"cd ~/ &&${command}\""
+  shell_exec=$BONITO_SHELL_EXEC
+  if [ $exec_su -eq 1 ]; then
+    shell_exec=$BONITO_SHELL_SU_EXEC
+  fi
+  echo $exec_su
+  com="docker exec -ti $container $shell_exec \"cd /home/$USER/ &&${command}\""
   echo $com
   bash -c "$com"
   return $?

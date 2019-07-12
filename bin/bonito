@@ -112,6 +112,9 @@ do
             opt=${2}
             shift
         ;;
+        --su)
+            exec_su=1
+        ;;
 
 
         -*)
@@ -145,6 +148,7 @@ my_silent_exec ${tag:=latest}
 my_silent_exec ${num_gpu:=1}
 my_silent_exec ${command:=""}
 my_silent_exec ${opt:=''}
+my_silent_exec ${exec_su:=0}
 
 #port_offset=$(bonito_port_offset)
 

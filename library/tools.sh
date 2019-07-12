@@ -256,8 +256,9 @@ function bonito_create_dockerfile {
   if [ $(bonito_file_exists $dockerfile_head.$HOSTNAME) -eq 1 ]; then
     dockerfile_head=$dockerfile_head.$HOSTNAME
   fi
-  dockerfile=$dockerfile_dir/Dockerfile.$HOSTNAME
+  dockerfile_base="Dockerfile.$HOSTNAME"
+  dockerfile=$dockerfile_dir/$dockerfile_base
   cp $dockerfile_head $dockerfile
   cat $dockerfile_tail >> $dockerfile
-  echo $dockerfile
+  echo $dockerfile_dir $dockerfile_base
 }
