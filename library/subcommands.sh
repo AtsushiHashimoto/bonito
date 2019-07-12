@@ -154,7 +154,7 @@ function bonito_run {
   opt_="$BONITO_COMMON_RUN_OPT $BONITO_USER_RUN_OPT $opt $(bonito_mount_option) $(bonito_port_option)"
   container=$(bonito_container)
   if [ $(bonito_container_exists) -eq 0 ]; then
-    com="docker run $opt_ --name=$container -ti $image $BONITO_SHELL"
+    com="docker run $opt_ --name=$container -ti $image $BONITO_RUN_COMMAND"
     echo $com
     bash -c "$com"
     return $?
